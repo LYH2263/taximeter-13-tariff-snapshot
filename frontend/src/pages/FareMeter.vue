@@ -11,10 +11,16 @@ const run = async () => { out.value = await postJSON('/api/fare', { distance_km:
   <div class="page"><h1>打表试算</h1>
     <div class="panel">
       <label>公里 <input type="number" v-model.number="distance_km" /></label>
-      <label>低速分钟 <input type="number" v-model.number="slow_min" /></label>
-      <label><input type="checkbox" v-model="night" /> 夜间</label>
-      <button @click="run">计算</button>
+      <label style="margin-left:0.5rem">低速分钟 <input type="number" v-model.number="slow_min" /></label>
+      <label style="margin-left:0.5rem"><input type="checkbox" v-model="night" /> 夜间</label>
+      <button style="margin-left:0.5rem" @click="run">计算</button>
     </div>
-    <p v-if="out" class="hero-num">¥{{ out.total }}</p>
+    <template v-if="out">
+      <p class="hero-num">¥{{ out.total }}</p>
+      <div class="panel">
+        <p>起步 {{ out.start }} · 里程 {{ out.mileage }} · 低速 {{ out.slow_fee }}</p>
+        <p style="color:var(--muted)">本次运价：起步价 {{ out.start_price }} · 含公里 {{ out.start_include_km }} · 每公里 {{ out.per_km }} · 低速单价 {{ out.per_slow_min }} · 夜间系数 {{ out.night_factor }}</p>
+      </div>
+    </template>
   </div>
 </template>

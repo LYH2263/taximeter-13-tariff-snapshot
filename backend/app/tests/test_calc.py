@@ -15,3 +15,15 @@ def test_night_long():
 def test_compare_delta():
     c = compare_day_night(18, 12, T)
     assert c["night_total"] > c["day_total"]
+
+def test_fare_carries_tariff_snapshot():
+    r = calc_fare(5, 2, False, T)
+    # 白天行程也须记下运价表配置的夜间系数，而不是生效倍率 1.0
+    assert (r["start_price"], r["start_include_km"], r["per_km"], r["per_slow_min"], r["night_factor"]) == (11, 3, 2.5, 0.8, 1.2)
+    n = calc_fare(5, 2, True, T)
+    assert n["night_factor"] == 1.2
+
+def test_compare_carries_night_factor():
+    c = compare_day_night(18, 12, T)
+    assert c["night_factor"] == 1.2
+    assert c["night"]["night_factor"] == 1.2

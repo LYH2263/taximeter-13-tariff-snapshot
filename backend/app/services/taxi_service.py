@@ -1,7 +1,10 @@
+import json
+
 from app.db import connect
 from app.engines.night_compare import compare_day_night
 from app.engines.tariff_breakdown import calc_fare
 from app.repositories import runs, settings, tariff, trips
+
 
 class TaxiService:
     def __init__(self): self._c = connect()
@@ -13,6 +16,25 @@ class TaxiService:
     def tariff(self): return tariff.get_active(self._c)
     def settings(self): return settings.get_map(self._c)
     def history(self, limit=50): return runs.list_recent(self._c, limit)
+    def run(self, run_id):
+        row = runs.get(self._c, run_id)
+        if not row:
+            return None
+        return {
+            "id": row["id"],
+            "kind": row["kind"],
+            "trip_id": row["trip_id"],
+            "created_at": row["created_at"],
+            "input": json.loads(row["input_json"] or "{}"),
+            "result": json.loads(row["result_json"] or "{}"),
+            "tariff_snapshot": runs.snapshot_of(row),
+        }
+    def update_tariff(self, fields):
+        return tariff.update(self._c, fields)
+    def preview_fare(self, distance_km, slow_min, night):
+        """只读试算：按现行运价计算，不写记录。"""
+        t = tariff.get_active(self._c)
+        return calc_fare(distance_km, slow_min, night, t)
     def fare(self, distance_km, slow_min, night, trip_id, persist):
         t = tariff.get_active(self._c)
         r = calc_fare(distance_km, slow_min, night, t)
